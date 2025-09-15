@@ -5,15 +5,19 @@ WORKDIR /src
 COPY package*.json ./
 RUN npm ci
 COPY . ./
-ARG BASE_HOST="http://localhost:9090"
-RUN BASE_HOST=${BASE_HOST} npm run build -- --configuration=production --output-path=dist
+RUN  npm run build -- --configuration=development --output-path=dist
 
 # Stage 2: Serve with Nginx
 FROM nginx:stable AS final
-EXPOSE 80
+EXPOSE 4200
 
 # Copy built Angular app to nginx
 COPY --from=build /src/dist/browser /usr/share/nginx/html
 
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/nginx.conf
+
+# Optional if you alowed Server side rendering
+RUN if [ -f /usr/share/nginx/html/index.csr.html ]; then \
+      cp /usr/share/nginx/html/index.csr.html /usr/share/nginx/html/index.html; \
+    fi

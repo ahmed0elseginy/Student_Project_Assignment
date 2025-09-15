@@ -1,7 +1,4 @@
-version: "3.8"
-
 services:
-  # MySQL Database
   mysql-db:
     image: mysql:8.0
     container_name: mysql-db
@@ -10,10 +7,7 @@ services:
       MYSQL_DATABASE: projectassignment
     ports:
       - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-      - ./backend(SpringBoot)/init.sql:/docker-entrypoint-initdb.d/init.sql
-    restart: unless-stopped
+
     healthcheck:
       test:
         ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "-proot"]
@@ -22,32 +16,35 @@ services:
       retries: 5
 
   # Spring Boot Application
+
   spring-backend:
     build:
-      context: ./backend(SpringBoot)
+      context: ./project_assignment(backend)
       dockerfile: Dockerfile
+    image: smoothcoode/pabackend
     container_name: spring-backend
     ports:
       - "9090:9090"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/projectassignment?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - MYSQL_HOST=mysql-db # mysql-db is our mysql`container name and  this environment variable is predefined in spring boot application.propreties 
     depends_on:
       mysql-db:
         condition: service_healthy
     restart: unless-stopped
 
-  # Angular Frontend
+
   angular-frontend:
     build:
-      context: ./Frontend(Angular)
+      context: ./project_assignment(frontend)
       dockerfile: Dockerfile
+    image: smoothcoode/pafrontend
     container_name: angular-frontend
     ports:
-      - "80:80"
+      - "4200:4200"
     depends_on:
       - spring-backend
     restart: unless-stopped
 
-volumes:
-  mysql_data:
-    driver: local
+
+
+
